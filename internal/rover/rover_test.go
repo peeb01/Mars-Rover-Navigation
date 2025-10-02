@@ -1,20 +1,21 @@
-package pkg_test
+package rover_test
 
 import (
 	"bytes"
-	"mars/pkg"
+	"mars/internal/grid"
 	"os"
 	"testing"
+	"mars/internal/rover"
 )
 
 // Test all rotations (L and R through all 4 directions)
 func TestMoveRoverAllRotations(t *testing.T) {
-	spaces := &pkg.Spaces{Row: 5, Col: 5}
-	r := pkg.InitRover()
+	spaces := &grid.Spaces{Row: 5, Col: 5}
+	r := rover.InitRover()
 
 	// 4 left turns should bring rover back to N
 	for i := 0; i < 4; i++ {
-		pkg.MoveRover(spaces, r, &pkg.Final{}, "L")
+		rover.MoveRover(spaces, r, &grid.Final{}, "L")
 	}
 	if r.Direction != "N" {
 		t.Errorf("expected N after 4 left turns, got %s", r.Direction)
@@ -22,7 +23,7 @@ func TestMoveRoverAllRotations(t *testing.T) {
 
 	// 4 right turns should bring rover back to N
 	for i := 0; i < 4; i++ {
-		pkg.MoveRover(spaces, r, &pkg.Final{}, "R")
+		rover.MoveRover(spaces, r, &grid.Final{}, "R")
 	}
 	if r.Direction != "N" {
 		t.Errorf("expected N after 4 right turns, got %s", r.Direction)
@@ -31,7 +32,7 @@ func TestMoveRoverAllRotations(t *testing.T) {
 
 // Test CreateSpaces creates correct dimensions and obstacles
 func TestCreateSpaces(t *testing.T) {
-	spaces := pkg.CreateSpaces(10, 20)
+	spaces := grid.CreateSpaces(10, 20)
 	if spaces.Row != 10 || spaces.Col != 20 {
 		t.Errorf("expected 10x20, got %dx%d", spaces.Row, spaces.Col)
 	}
@@ -49,17 +50,17 @@ func TestCreateSpaces(t *testing.T) {
 
 // Test DrawSpaces prints car and obstacles
 func TestDrawSpaces(t *testing.T) {
-	spaces := &pkg.Spaces{
+	spaces := &grid.Spaces{
 		Row: 2, Col: 2,
-		Obstacles: []pkg.Obstacle{{X: 1, Y: 1}},
+		Obstacles: []grid.Obstacle{{X: 1, Y: 1}},
 	}
-	r := &pkg.Rover{X: 0, Y: 0}
+	r := &rover.Rover{X: 0, Y: 0}
 
 	old := os.Stdout
 	rPipe, wPipe, _ := os.Pipe()
 	os.Stdout = wPipe
 
-	pkg.DrawSpaces(spaces, r)
+	rover.DrawSpaces(spaces, r)
 
 	wPipe.Close()
 	os.Stdout = old
@@ -78,12 +79,12 @@ func TestDrawSpaces(t *testing.T) {
 
 // Test PrintFinalState wraps ToJSON correctly
 func TestPrintFinalState(t *testing.T) {
-	f := &pkg.Final{
+	f := &grid.Final{
 		FinalPosition:  [2]int{3, 4},
 		FinalDirection: "S",
 		Status:         "Success",
 	}
-	jsonStr, err := pkg.PrintFinalState(f)
+	jsonStr, err := grid.PrintFinalState(f)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -94,10 +95,10 @@ func TestPrintFinalState(t *testing.T) {
 
 // TestMoveRoverPlainSuccess ensures rover moves correctly without obstacles
 func TestMoveRoverPlainSuccess(t *testing.T) {
-	spaces := &pkg.Spaces{Row: 3, Col: 3}
-	r := &pkg.Rover{X: 1, Y: 1, Direction: "N"}
+	spaces := &grid.Spaces{Row: 3, Col: 3}
+	r := &rover.Rover{X: 1, Y: 1, Direction: "N"}
 
-	_ = pkg.MoveRover(spaces, r, &pkg.Final{}, "M")
+	_ = rover.MoveRover(spaces, r, &grid.Final{}, "M")
 
 	if r.X != 1 || r.Y != 2 {
 		t.Errorf("expected rover at (1,2) but got (%d,%d)", r.X, r.Y)
@@ -110,10 +111,10 @@ func TestMoveRoverPlainSuccess(t *testing.T) {
 
 // TestMoveRoverSequence tests a sequence of commands
 func TestMoveRoverSequence(t *testing.T) {
-	spaces := &pkg.Spaces{Row: 5, Col: 5}
-	r := pkg.InitRover()
+	spaces := &grid.Spaces{Row: 5, Col: 5}
+	r := rover.InitRover()
 
-	final := pkg.MoveRover(spaces, r, &pkg.Final{}, "MMRML")
+	final := rover.MoveRover(spaces, r, &grid.Final{}, "MMRML")
 
 	if r.X != 1 || r.Y != 2 {
 		t.Errorf("expected rover at (1,2), got (%d,%d)", r.X, r.Y)
@@ -125,7 +126,7 @@ func TestMoveRoverSequence(t *testing.T) {
 
 // TestCreateSpacesSquare checks single-arg CreateSpaces
 func TestCreateSpacesSquare(t *testing.T) {
-	spaces := pkg.CreateSpaces(5)
+	spaces := grid.CreateSpaces(5)
 	if spaces.Row != 5 || spaces.Col != 5 {
 		t.Errorf("expected 5x5, got %dx%d", spaces.Row, spaces.Col)
 	}
@@ -138,19 +139,19 @@ func TestCreateSpacesPanic(t *testing.T) {
 			t.Errorf("expected panic but did not get one")
 		}
 	}()
-	_ = pkg.CreateSpaces(1, 2, 3) // invalid call
+	_ = grid.CreateSpaces(1, 2, 3) // invalid call
 }
 
 
 // TestMoveRoverMultiStep covers multiple commands in one string
 func TestMoveRoverMultiStep(t *testing.T) {
-	spaces := &pkg.Spaces{
+	spaces := &grid.Spaces{
 		Row: 5, Col: 5,
-		Obstacles: []pkg.Obstacle{{X: 2, Y: 2}}, // obstacle in path
+		Obstacles: []grid.Obstacle{{X: 2, Y: 2}}, // obstacle in path
 	}
-	r := pkg.InitRover()
+	r := rover.InitRover()
 
-	final := pkg.MoveRover(spaces, r, &pkg.Final{}, "MMRMM")
+	final := rover.MoveRover(spaces, r, &grid.Final{}, "MMRMM")
 
 	if final.Status != "Obstacle encountered" {
 		t.Errorf("expected Obstacle encountered, got %s", final.Status)
@@ -159,7 +160,7 @@ func TestMoveRoverMultiStep(t *testing.T) {
 
 // TestCreateSpacesSquareArg covers single argument usage
 func TestCreateSpacesSquareArg(t *testing.T) {
-	spaces := pkg.CreateSpaces(4)
+	spaces := grid.CreateSpaces(4)
 	if spaces.Row != 4 || spaces.Col != 4 {
 		t.Errorf("expected 4x4, got %dx%d", spaces.Row, spaces.Col)
 	}
@@ -172,17 +173,17 @@ func TestCreateSpacesInvalidArgs(t *testing.T) {
 			t.Errorf("expected panic but got none")
 		}
 	}()
-	_ = pkg.CreateSpaces(1, 2, 3) // invalid call
+	_ = grid.CreateSpaces(1, 2, 3) // invalid call
 }
 
 // TestPrintFinalStateKeys ensures JSON has required fields
 func TestPrintFinalStateKeys(t *testing.T) {
-	f := &pkg.Final{
+	f := &grid.Final{
 		FinalPosition:  [2]int{0, 0},
 		FinalDirection: "N",
 		Status:         "Ready",
 	}
-	jsonStr, _ := pkg.PrintFinalState(f)
+	jsonStr, _ := grid.PrintFinalState(f)
 	if !bytes.Contains([]byte(jsonStr), []byte("status")) {
 		t.Errorf("expected JSON to contain status, got %s", jsonStr)
 	}
@@ -193,17 +194,17 @@ func TestPrintFinalStateKeys(t *testing.T) {
 
 // TestDrawSpacesOverlap checks when rover stands on obstacle
 func TestDrawSpacesOverlap(t *testing.T) {
-	spaces := &pkg.Spaces{
+	spaces := &grid.Spaces{
 		Row: 2, Col: 2,
-		Obstacles: []pkg.Obstacle{{X: 0, Y: 0}}, // same as rover
+		Obstacles: []grid.Obstacle{{X: 0, Y: 0}}, // same as rover
 	}
-	r := &pkg.Rover{X: 0, Y: 0}
+	r := &rover.Rover{X: 0, Y: 0}
 
 	old := os.Stdout
 	rPipe, wPipe, _ := os.Pipe()
 	os.Stdout = wPipe
 
-	pkg.DrawSpaces(spaces, r)
+	rover.DrawSpaces(spaces, r)
 
 	wPipe.Close()
 	os.Stdout = old

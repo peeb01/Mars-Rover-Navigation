@@ -1,4 +1,4 @@
-package pkg
+package grid
 
 import (
     "encoding/json"

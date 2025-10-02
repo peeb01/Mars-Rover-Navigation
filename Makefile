@@ -1,53 +1,58 @@
-# Go parameters
 BINARY_NAME=mars
-PKG=./pkg
+PKG=./...
 
-.PHONY: all build run test cover cover-html clean tidy fmt
+.PHONY: all prepare build run test cover cover-html clean tidy fmt lint
 
-# Build binary
+all: build
+
+prepare:
+	@echo "==> Preparing dependencies..."
+	@if ! command -v golangci-lint >/dev/null 2>&1; then \
+		echo "Installing golangci-lint..."; \
+		if command -v snap >/dev/null 2>&1; then \
+			sudo snap install golangci-lint --classic || true; \
+		else \
+			go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest; \
+		fi \
+	fi
+	@echo "Dependencies ready."
+
+
 build:
 	@echo "==> Building $(BINARY_NAME)..."
 	go build -o bin/$(BINARY_NAME) main.go
 
-# Run program
 run: build
 	@echo "==> Running $(BINARY_NAME)..."
 	./bin/$(BINARY_NAME)
 
-# Run tests in pkg/ with coverage summary
 test:
-	@echo "==> Running tests in pkg/..."
+	@echo "==> Running tests..."
 	go test $(PKG) -cover
 
-# Generate coverage report (text) for pkg/
 cover:
 	@echo "==> Generating coverage report (text)..."
 	go test $(PKG) -coverprofile=coverage.out
 	go tool cover -func=coverage.out
 
-# Go linting
-lint:
-	@echo "==> Linting code..."
-	golangci-lint run ./...
-
-# Generate coverage report (HTML) for pkg/
 cover-html:
 	@echo "==> Generating coverage report (HTML)..."
 	go test $(PKG) -coverprofile=coverage.out
 	go tool cover -html=coverage.out -o coverage.html
 	@echo "Open coverage.html in your browser to view coverage report"
 
-# Format code
 fmt:
 	@echo "==> Formatting code..."
 	go fmt ./...
 
-# Tidy modules
 tidy:
 	@echo "==> Running go mod tidy..."
 	go mod tidy
 
-# Clean up build artifacts
+lint:
+	@echo "==> Linting code..."
+	golangci-lint run ./...
+
 clean:
 	@echo "==> Cleaning..."
 	rm -rf bin coverage.out coverage.html

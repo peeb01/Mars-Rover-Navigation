@@ -1,8 +1,10 @@
-package pkg
+package rover
 
-import "fmt"
+import (
+	"fmt"
+	"mars/internal/grid")
 
-func DrawSpaces(g *Spaces, r *Rover) {
+func DrawSpaces(g *grid.Spaces, r *Rover) {
 	for y := g.Row - 1; y >= 0; y-- {
 		for x := 0; x < g.Col; x++ {
 			if r.X == x && r.Y == y {

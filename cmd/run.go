@@ -2,16 +2,17 @@ package cmd
 
 import (
 	"fmt"
-	"mars/pkg"
 	"strings"
+	rv "mars/internal/rover"
+	gd "mars/internal/grid"
 )
 
 func Run(sizes ... int) {
-	spaces := pkg.CreateSpaces(sizes...)
-	rover := pkg.InitRover()
+	spaces := gd.CreateSpaces(sizes...)
+	rover := rv.InitRover()
 	var commands string
 
-	final := &pkg.Final{FinalPosition: [2]int{rover.X, rover.Y}, FinalDirection: rover.Direction, Status: "Ready"}
+	final := &gd.Final{FinalPosition: [2]int{rover.X, rover.Y}, FinalDirection: rover.Direction, Status: "Ready"}
 
 	for {
 		fmt.Print("\033[H\033[2J")
@@ -22,7 +23,7 @@ func Run(sizes ... int) {
 			final.FinalDirection, final.Status,
 		)
 		fmt.Println("======================================================================")
-		pkg.DrawSpaces(spaces, rover)
+		rv.DrawSpaces(spaces, rover)
 
 
 		fmt.Print("Enter rover commands (M/L/R): ")
@@ -38,7 +39,7 @@ func Run(sizes ... int) {
 			break
 		}
 
-		final = pkg.MoveRover(spaces, rover, &pkg.Final{}, commands)
+		final = rv.MoveRover(spaces, rover, &gd.Final{}, commands)
 
 		fmt.Println("======================================================================")
 

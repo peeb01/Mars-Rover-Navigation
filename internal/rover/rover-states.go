@@ -1,4 +1,4 @@
-package pkg
+package rover
 
 // State of the rover
 type Rover struct {

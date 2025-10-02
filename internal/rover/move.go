@@ -1,11 +1,12 @@
-package pkg
+package rover
 
 import (
 	// "fmt"
 	"strings"
+	"mars/internal/grid"
 )
 
-func MoveRover(g *Spaces, r *Rover, final *Final ,commands string) *Final {
+func MoveRover(g *grid.Spaces, r *Rover, final *grid.Final ,commands string) *grid.Final {
 	command := strings.Split(commands, "")
 	delta := map[string][2]int{
 		"N": {0, 1},
